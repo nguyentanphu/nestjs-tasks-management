@@ -1,11 +1,12 @@
-import { Injectable, BadRequestException, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from './user.repository';
 import { AuthCredentialDto } from './dtos/auth-credential.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private userRepository: UserRepository) {
+  constructor(private userRepository: UserRepository, private jwtService: JwtService) {
 
   }
 
@@ -17,7 +18,7 @@ export class AuthService {
     await this.userRepository.save(newUser);
   }
 
-  async signIn(credential: AuthCredentialDto) {
+  async signIn(credential: AuthCredentialDto): Promise<{accessToken: string}> {
     const {username, password} = credential;
     const user = await this.userRepository.findOne({username});
     if (!user) {
@@ -28,7 +29,7 @@ export class AuthService {
       throw new HttpException('Please check your credential.', HttpStatus.BAD_REQUEST);
     }
 
-    return 'success';
+    return {accessToken: this.jwtService.sign({username})};
   }
 
   async userExist(username: string) {

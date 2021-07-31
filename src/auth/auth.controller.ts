@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Post, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, HttpException, HttpStatus } from '@nestjs/common';
 import { AuthCredentialDto } from './dtos/auth-credential.dto';
 import { AuthService } from './auth.service';
 
