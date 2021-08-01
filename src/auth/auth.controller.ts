@@ -2,6 +2,9 @@ import { Body, Controller, Post, HttpException, HttpStatus, Get, Req, UseGuards 
 import { AuthCredentialDto } from './dtos/auth-credential.dto';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import { LocalAuthGuard } from './guards/local-auth.guard';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -10,23 +13,24 @@ export class AuthController {
   }
 
   @Post('signUp')
-  async signUp(@Body() credential: AuthCredentialDto) {
-    const userExist = await this.authService.userExist(credential.username);
+  async signUp(@Body() createUserDto: CreateUserDto) {
+    const userExist = await this.authService.userExist(createUserDto.username, createUserDto.email);
     if (userExist) {
-      throw new HttpException('username is taken.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('username or email is taken.', HttpStatus.BAD_REQUEST);
     }
 
-    await this.authService.createUser(credential);
+    await this.authService.createUser(createUserDto);
   }
 
+  @UseGuards(LocalAuthGuard)
   @Post('signIn')
-  signIn(@Body() credential: AuthCredentialDto) {
-    return this.authService.signIn(credential);
+  signIn(@Req() req) {
+    return this.authService.signIn(req.user);
   }
 
-  @UseGuards(AuthGuard())
+  @UseGuards(JwtAuthGuard)
   @Get('test')
   test(@Req() req) {
-    console.log(req);
+    console.log(req.user);
   }
 }
