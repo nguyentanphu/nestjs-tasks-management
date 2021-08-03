@@ -3,9 +3,8 @@ import * as bcrypt from 'bcrypt';
 import { UserRepository } from './user.repository';
 import { AuthCredentialDto } from './dtos/auth-credential.dto';
 import { JwtService } from '@nestjs/jwt';
-import { IsEmail } from 'class-validator/types/decorator/string/IsEmail';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { User } from './user.entity';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -13,25 +12,16 @@ export class AuthService {
 
   }
 
-  async createUser(createUserDto: CreateUserDto) {
-    const {username, email, password} = createUserDto;
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const newUser = this.userRepository.create({username, email, hashedPassword});
-    await this.userRepository.save(newUser);
+  createUser(createUserDto: CreateUserDto) {
+    return this.userRepository.createUser(createUserDto);
   }
 
   async validateUser(credential: AuthCredentialDto): Promise<any> {
-    const {usernameOrEmail, password} = credential;
-    let query = this.userRepository.createQueryBuilder('user')
-    if (this.isEmail(usernameOrEmail)) {
-      query = query.where('user.email = :email', {email: usernameOrEmail})
-    } else {
-      query = query.where('user.username = :username', {username: usernameOrEmail})
-    }
-    const user = await query.getOne();
+    const { usernameOrEmail, password } = credential;
+    
+    const user = await this.userRepository.findUserByUserNameOrEmail(usernameOrEmail);
     if (user && await bcrypt.compare(password, user.hashedPassword)) {
-      const {hashedPassword, ...result} = user;
+      const { hashedPassword, ...result } = user;
       return result;
     }
     return null;
@@ -39,27 +29,20 @@ export class AuthService {
 
   signIn(userPayload: Partial<User>) {
     const jwtPayload = {
-      sub: userPayload.id,
+      _id: userPayload._id,
+      sub: userPayload._id,
       username: userPayload.username,
       email: userPayload.email
-    };
+    } as Partial<User>;
 
     return {
       accessToken: this.jwtService.sign(jwtPayload)
     }
   }
 
-  async userExist(username, email) {
-    return await this.userRepository.count({
-      where: [
-        {username},
-        {email}
-      ]
-    }) > 0
+  userExist(username, email) {
+    return this.userRepository.userExist(username, email);
   }
 
-  private isEmail(text: string) {
-    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(String(text).toLowerCase());
-}
+  
 }
