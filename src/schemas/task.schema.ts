@@ -13,7 +13,7 @@ export enum TaskStatus {
 export class SubTask {
   _id: string;
 
-  @Prop({required: true})
+  @Prop({ required: true })
   description: string;
 }
 
@@ -34,15 +34,18 @@ export class Task {
   @Prop({ enum: TaskStatus, default: TaskStatus.OPEN })
   status: TaskStatus;
 
-  @Prop({type: [subTaskSchema], default: []})
+  @Prop({ type: [subTaskSchema], default: [] })
   subTasks: SubTask[];
 
-  @Prop({type: MongooseSchema.Types.ObjectId, ref: User.name})
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: User.name })
   user: User;
 
-  setStatus(status: TaskStatus) {
-    this.status = status;
-  }
+  setStatus: (status: TaskStatus) => void;
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
+
+TaskSchema.methods.setStatus = function (status: TaskStatus) {
+  const that = this as TaskDocument;
+  that.status = status;
+}

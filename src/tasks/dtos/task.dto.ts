@@ -8,17 +8,3 @@ export class TaskDto {
   description: string;
   subTasks: { description: string }[] = [];
 }
-
-export class TaskFilterDto {
-  @IsOptional()
-  @IsNotEmpty()
-  title?: string;
-
-  @IsOptional()
-  @IsNotEmpty()
-  description?: string;
-
-  @IsOptional()
-  @IsEnum(TaskStatus)
-  status?: TaskStatus;
-}

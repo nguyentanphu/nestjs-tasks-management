@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { Task } from '../schemas/task.schema';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Task, TaskStatus } from '../schemas/task.schema';
 import { User } from '../schemas/user.schema';
-import { TaskDto, TaskFilterDto } from './dtos/tasks.dto';
+import { TaskDto } from './dtos/task.dto';
 import { TasksRepository } from './tasks.repository';
 
 @Injectable()
@@ -32,9 +32,9 @@ export class TasksService {
       
   // }
 
-  // getTaskById(id: number) {
-  //   return this.tasksRepository.findOne(id);
-  // }
+  async getTaskById(id: string) {
+    return (await this.tasksRepository.getTaskById(id)).toObject();
+  }
 
   createTask(taskDto: TaskDto, user: Partial<User>): Promise<Task> {
     return this.tasksRepository.createTask(taskDto, user._id);
@@ -44,13 +44,13 @@ export class TasksService {
   //   return this.tasksRepository.delete({id});
   // }
 
-  // async setTaskStatus(id:number, status: TaskStatus) {
-  //   const currentTask = await this.getTaskById(id);
-  //   if (!currentTask) {
-  //     return;
-  //   }
+  async setTaskStatus(id: string, status: TaskStatus) {
+    const currentTask = await this.tasksRepository.getTaskById(id);
+    if (!currentTask) {
+      throw new HttpException(`Task with id ${id} was not found`, HttpStatus.NOT_FOUND);
+    }
 
-  //   currentTask.setStatus(status);
-  //   await this.tasksRepository.save(currentTask);
-  // }
+    currentTask.setStatus(status);
+    await currentTask.save();
+  }
 }
