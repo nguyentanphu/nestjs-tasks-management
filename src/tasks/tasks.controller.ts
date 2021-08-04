@@ -5,6 +5,8 @@ import { TasksService } from './tasks.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TaskStatus } from 'src/schemas/task.schema';
 import { ObjectIdPipe } from 'src/shared/pipes/objectId.pipe';
+import { UpdateTaskDto } from './dtos/update-task.dto';
+import { TaskFilterDto } from './dtos/task-filter.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
@@ -26,10 +28,10 @@ export class TasksController {
     return currentTask;
   }
 
-  // @Get()
-  // getFilteredTasks(@Query() taskFiltered: TaskFilterDto) {
-  //   return this.taskService.getFilteredTasks(taskFiltered);
-  // }
+  @Get()
+  getFilteredTasks(@Query() taskFiltered: TaskFilterDto) {
+    return this.taskService.getTasks(taskFiltered);
+  }
 
   @Patch(':id/status/:status')
   async updateTaskStatus(
@@ -39,10 +41,18 @@ export class TasksController {
     await this.taskService.setTaskStatus(id, status);
   }
 
-  // @Delete(':id')
-  // deleteTask(@Param('id', new ParseIntPipe()) id: number) {
-  //   this.getTaskById(id);
-  //   this.taskService.deleteTaskById(id);
-  // }
+  @Patch(':id')
+  async updateTaskFields(
+    @Param('id', ObjectIdPipe) id: string,
+    @Body() updateDto: UpdateTaskDto
+  ) {
+    await this.taskService.updateTaskFields(id, updateDto);
+  }
+
+  @Delete(':id')
+  async deleteTask(@Param('id', ObjectIdPipe) id: string) {
+    await this.getTaskById(id);
+    await this.taskService.deleteTaskById(id);
+  }
 
 }

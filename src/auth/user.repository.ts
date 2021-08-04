@@ -24,7 +24,7 @@ export class UserRepository {
         {username},
         {email}
       ]
-    }) > 0;
+    }).exec() > 0;
   }
 
   async findUserByUserNameOrEmail(usernameOrEmail: string) {
