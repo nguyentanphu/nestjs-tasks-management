@@ -16,6 +16,12 @@ export class User {
 
   @Prop({ required: true })
   hashedPassword: string;
+
+  @Prop()
+  twoFactorAuthenticationSecret: string;
+
+  @Prop({default: false})
+  twoFactorAuthenticationEnabled: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

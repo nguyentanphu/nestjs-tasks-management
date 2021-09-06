@@ -34,8 +34,17 @@ export class UserRepository {
     return (await this.userModel.findOne(query).exec()).toObject();
   }
 
+  async updateTwoFactorAuthenticationSecret(user, secret: string) {
+    const existingUser = await this.userModel.findOne({
+      email: user.email
+    }).exec();
+    existingUser.twoFactorAuthenticationSecret = secret;
+    await existingUser.save();
+  }
+
   private isEmail(text: string) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(text).toLowerCase());
   }
+
 }

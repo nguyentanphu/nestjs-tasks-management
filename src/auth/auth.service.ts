@@ -5,6 +5,9 @@ import { AuthCredentialDto } from './dtos/auth-credential.dto';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { User } from 'src/schemas/user.schema';
+import { authenticator } from 'otplib';
+import { Response } from 'express';
+import { toFileStream } from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +45,14 @@ export class AuthService {
 
   userExist(username, email) {
     return this.userRepository.userExist(username, email);
+  }
+
+  async generateTwoFactorAuthentication(user, response: Response) {
+    const secret = authenticator.generateSecret();
+    const otpAuthUrl = authenticator.keyuri(user.email, 'Tasks management app', secret);
+    await this.userRepository.updateTwoFactorAuthenticationSecret(user, secret);
+
+    return await toFileStream(response, otpAuthUrl);
   }
 
   
